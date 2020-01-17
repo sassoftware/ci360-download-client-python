@@ -1,0 +1,13 @@
+# Enter the agent name configured in CI360 GUI
+agentName = ci360_agent
+
+# Enter the tenantId of your CI360 tenant, you find it underneath General in CI360 GUI
+tenantId  = abc123-ci360-tenant-id-xyz
+
+# Enter the secret of your agent which you created in CI360 GUI
+secret    = ABC123ci360clientSecretXYZ
+
+# CI360 Download URL
+baseUrl   = https://extapigwservice-dev.cidev.sas.us/marketingGateway/discoverService/dataDownload/eventData/
+            
+
