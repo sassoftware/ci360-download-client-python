@@ -2,10 +2,9 @@
 '''
 Copyright © 2019, SAS Institute Inc., Cary, NC, USA.  All Rights Reserved.
 SPDX-License-Identifier: Apache-2.0
-
 Created on Nov 3, 2017
-last update on Jan 03, 2019
-Version 0.8
+last update on Feb 20, 2020
+Version 0.9
 @authors: Mathias Bouten , Shashikant Deore
 NOTE: This Discover Download script should help to better understand 
       the download API and can be used as a base to start interacting 
@@ -24,8 +23,9 @@ import pandas
 import backoff
 
 #version and update date
-version = 'V0.8'
-updateDate = '12 Jul 2019'
+version = 'V0.9'
+updateDate = '20 Feb 2020'
+downloadClient = 'ci360pythonV0.9'
 
 # default values
 limit     = "20" 
@@ -55,22 +55,9 @@ resetQueryString = {}
 gSql = ''
 gSqlInsert = ''
 cleanFiles = 'yes'
+responseText =''
 
 ##### functions #####
-
-'''
-def getLastDataRangeStart():
-    historyFile = dir_config + 'download_history_' + martName + '.csv'
-    with open(historyFile) as f:
-        last = f.readlines()[-1]
-
-    lastDataRangeStart = last.split(';',1)[0]
-    adjustedTime = datetime.strptime(lastDataRangeStart, '%Y-%m-%dT%H:%M:%S.%fZ')
-    adjustedTime += timedelta(hour=1)
-    adjustedTimeStr = adjustedTime.strftime('%Y-%m-%dT%H:%M:%S.000Z')
-    return adjustedTimeStr
-'''
-
 
 # function to do the version specific changes to the already created objects if any
 def versionUpdate():
@@ -113,8 +100,6 @@ def versionUpdate():
                                 # append delimiter to line
                                 newline = line.replace('\n','') + ColumnDelimiter + "\n"
                                 hf.write(newline)
-    # Change#1 : done 
-    
 
 def getNextDataRangeStart():
     # set  nextDataRangeStart = lastDataRangeEnd + 1 ms 
@@ -132,11 +117,6 @@ def logFileNmtimeStamped(filename, fmt='{filename}_%Y%m%dT%H%M%S.log'):
     #return datetime.datetime.now().strftime(fmt).format(filename=filename)
     return datetime.now().strftime(fmt).format(filename=filename)
 
-'''
-def getDataRangeEndOfNow():
-    endtime = str(datetime.now()).split(':',1)[0].replace(' ','T')+':00:00.000Z'
-    return endtime
-'''
 def readConfig(configFile):
     keys = {}
     seperator = '='
@@ -155,8 +135,8 @@ def printDownloadDetails(json_data):
     if json_data.get('message') :
         logger('WARNING:' + str(json_data['message']),'n' )
 
-    if martName == 'identity':
-        logger('  download of dataMart identity','n')
+    if martName == 'identity' or martName == 'snapshot':
+        logger('  download of dataMart snapshot','n')
     else:
         TotalDownloadPackages=json_data['count']
         CurrentPageDownloadPackages=len(json_data['items'])
@@ -191,7 +171,7 @@ def createDiscoverAPIUrl(config):
         url = baseUrl + 'detail/partitionedData'
     elif martName == 'dbtReport':
         url = baseUrl + 'dbtReport'
-    elif martName == 'identity':
+    elif martName == 'identity' or martName =='snapshot':
         url = baseUrl + 'detail/nonPartitionedData'
     else:
         print('Error: wrong martName ')
@@ -217,6 +197,7 @@ def log_retry_attempt(details):
     #       "calling function {target} with args {args} and kwargs "
     #       "{kwargs}".format(**details))
     logger('  Caught retryable error after ' + str(details["tries"]) + ' tries. Waiting  ' + str(round(details["wait"],2)) + ' more seconds then retrying...', 'n', True)
+    logger('  responseText: ' + str(responseText) ,'n', True)
 
 def after_all_retries(details):
     _, exception, _ = sys.exc_info()
@@ -236,6 +217,7 @@ def after_all_retries(details):
     #,max_time=30
     )
 def getResetUrls(url):
+    global responseText
     resetQueryString["agentName"] = config['agentName']
     if martName == 'dbtReport' :
         resetQueryString["martType"] = 'dbt-report'
@@ -252,6 +234,7 @@ def getResetUrls(url):
     # to test retry meachanism force the response status code 
     # response.status_code=409
     #print_response(response)
+    responseText=response.text
     response.raise_for_status()
             
     getURLs_end = time.time() # track get download URL request time
@@ -291,6 +274,7 @@ def print_response(res):
 
 @backoff.on_exception(backoff.expo,requests.exceptions.RequestException,max_tries=max_retry_attempts,factor=5,on_backoff=log_retry_attempt,on_giveup=after_all_retries)
 def getDownloadUrls(url):
+    global responseText
     querystring["limit"] = limit
     querystring["agentName"] = config['agentName']
     getURLs_start = time.time() # track get download URL request time
@@ -300,6 +284,8 @@ def getDownloadUrls(url):
     response = requests.request("GET", url, headers=headers, params=querystring)
     # to test retry meachanism force the response status code 
     # response.status_code=409
+    responseText=response.text
+    
     response.raise_for_status()
 
             
@@ -342,11 +328,13 @@ def createDiscoverAPIUrlFromHref(config,href):
 
 @backoff.on_exception(backoff.expo,requests.exceptions.RequestException,max_tries=max_retry_attempts,factor=5,on_backoff=log_retry_attempt,on_giveup=after_all_retries)
 def getSchema( url, tablename ):
+    global responseText
     global gSql 
     global gSqlInsert
     r = requests.get(url)
     # to test retry meachanism force the response status code 
     # r.status_code=409
+    responseText=r.text
     r.raise_for_status()
 
     json_meta = json.loads(r.text)
@@ -374,9 +362,11 @@ def getSchema( url, tablename ):
 
 @backoff.on_exception(backoff.expo,requests.exceptions.RequestException,max_tries=max_retry_attempts,factor=5,on_backoff=log_retry_attempt,on_giveup=after_all_retries)
 def downloadWithProgress( url, outputfile, writeType):
+    global responseText
     r = requests.get(url, stream=True)
     # to test retry meachanism force the response status code 
     # r.status_code=409
+    responseText=r.text
     r.raise_for_status()
     # Total size in bytes.
     file_size = int(r.headers.get('content-length', 0))
@@ -395,9 +385,11 @@ def downloadWithProgress( url, outputfile, writeType):
 
 @backoff.on_exception(backoff.expo,requests.exceptions.RequestException,max_tries=max_retry_attempts,factor=5,on_backoff=log_retry_attempt,on_giveup=after_all_retries)
 def download( url, outputfile, writeType):
+    global responseText
     r = requests.get(url)
     # to test retry meachanism force the response status code 
     #r.status_code=409
+    responseText=r.text
     r.raise_for_status()
     with open(outputfile, writeType) as f:
         f.write(r.content)                 # write data to file
@@ -612,8 +604,8 @@ def logResetRange(dataRangeStart=None, dataRangeEnd=None, resetCompleted_dttm=No
         with open(historyFile, 'a') as f:
             f.write(recordline+"\n")    
 
-def logHistoryIdentity(entity):
-    historyFile = dir_config +'download_history_identity.csv'
+def logHistorySnapshot(entity):
+    historyFile = dir_config +'download_history_snapshot.csv'
     nowDttm = str(datetime.now())
     lastModifiedTimestamp = entity['dataUrlDetails'][0]['lastModifiedTimestamp']
 
@@ -681,7 +673,12 @@ def loopThroughDownloadPackages(url):
             rangeStart = rangeStartDt.replace(':','-').replace('.000Z','')
             rangeEndDt = item['dataRangeEndTimeStamp']
             rangeEnd = rangeEndDt.replace(':','-').replace('.999Z','')
-            processingStatus = item['dataRangeProcessingStatus']
+            
+            if not is_json_key_present(item, 'dataRangeProcessingStatus'):
+                processingStatus  = ''
+            else:  
+                processingStatus = item['dataRangeProcessingStatus']
+
             prefix = rangeStart+ "_"
             packageNumber=packageNumber+1
             str_packageNumber = str(packageNumber)
@@ -697,8 +694,8 @@ def loopThroughDownloadPackages(url):
         for entity in json_data['items'][packageNumber-1]['entities']:  
             ###createSingleTableFiles(entity, schemaUrl)          
             downloadEntity(entity, schemaUrl, prefix)      
-            if martName == 'identity':
-                logHistoryIdentity(entity)
+            if martName == 'identity' or martName == 'snapshot' :
+                logHistorySnapshot(entity)
     
         if martName == 'detail' or martName == 'dbtReport':
             logHistory(rangeStartDt, rangeEndDt,processingStatus)
@@ -711,6 +708,14 @@ def loopThroughDownloadPackages(url):
             #form the next url using href
             url=createDiscoverAPIUrlFromHref(config,nextHref)
             loopThroughDownloadPackages(url)
+
+def is_json_key_present(json, key):
+    try:
+        buf = json[key]
+    except KeyError:
+        return False
+
+    return True
 
 def loopThroughResetPackages(url):
 
@@ -791,11 +796,11 @@ parser = argparse.ArgumentParser(description=
         \n          py discover.py -m detail -l 2 \
         \n          py discover.py -m detail -st 2017-12-07T10 -et 2017-12-07T12 \
         \n          py discover.py -m dbtReport -cf yes -cd ";" -ch yes \
-        \n          py discover.py -m identity '
+        \n          py discover.py -m snapshot '
         , formatter_class=RawTextHelpFormatter)
 
 parser.add_argument('-m', action='store', dest='mart', type=str, 
-    help='enter dataMart: detail, dbtReport or identity', required=True)
+    help='enter dataMart: detail, dbtReport or snapshot', required=True)
 parser.add_argument('-l', action='store', dest='limit', type=int, 
     help='enter a limit: ie. 30 - default 20', required=False)
 parser.add_argument('-cd', action='store', dest='delimiter', type=str, 
@@ -828,6 +833,9 @@ parser.add_argument('-ar', action='store', dest='autoreset', type=str, default='
     help='perform reset before download : yes or no - default yes', required=False)
 parser.add_argument('-ct', action='store', dest='category', type=str, default='discover',
     help='category to download : e.g. discover,engagedirect .. - default discover', required=False)
+#added 2020-01-27 - sinshd -new API features - test mode download
+parser.add_argument('-tm', action='store', dest='testmode', type=str,
+    help='test mode download : e.g. PLANTESTMODE  ', required=False)
 
 args = parser.parse_args()
 
@@ -905,6 +913,13 @@ if args.category is not None:
     querystring["category"] = category
     print('  category: ' + category)
 
+if args.testmode is not None:
+    testmode = str(args.testmode)
+    querystring["code"] = testmode
+    print('  testmode: ' + testmode)
+
+querystring["downloadClient"] = downloadClient
+print('  downloadClient: ' + downloadClient)
 ################### START SCRITPT #####################
 
 # call version update function to update existing files

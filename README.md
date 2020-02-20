@@ -4,7 +4,7 @@
 This Python script enables you to download cloud-hosted data tables from SAS Customer Intelligence 360.
  
 The script can perform the following tasks:
- * Download the following data marts: `detail`, `dbtReport`, and `identity`.
+ * Download the following data marts: `detail`, `dbtReport`, and `snapshot (previously identity)`.
  * Specify a time range to be downloaded.
  * Automatically unzip the download packages and create csv files with header rows and field delimiters.
  * Keep track of all initiated downloads. This lets you download a delta from the last complete download and append it to one file per table.
@@ -94,8 +94,8 @@ Before starting a download, make a note of the following things:
 * Download the discover Base tables:  
 ```py discover.py –m dbtReport```
 
-* Download the identity tables:  
-```py discover.py –m identity```
+* Download the snapshot tables:  
+```py discover.py –m snapshot```
 
 * Download the detail tables (with only the delta from the last download), create a CSV file, and append to the existing files:  
 ```py discover.py –m detail –d yes –cf yes –a yes```
