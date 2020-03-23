@@ -24,7 +24,7 @@ import backoff
 
 #version and update date
 version = 'V0.9'
-updateDate = '20 Feb 2020'
+updateDate = '23 Mar 2020'
 downloadClient = 'ci360pythonV0.9'
 
 # default values
@@ -366,7 +366,7 @@ def downloadWithProgress( url, outputfile, writeType):
     r = requests.get(url, stream=True)
     # to test retry meachanism force the response status code 
     # r.status_code=409
-    responseText=r.text
+    #responseText=r.text
     r.raise_for_status()
     # Total size in bytes.
     file_size = int(r.headers.get('content-length', 0))
@@ -389,7 +389,7 @@ def download( url, outputfile, writeType):
     r = requests.get(url)
     # to test retry meachanism force the response status code 
     #r.status_code=409
-    responseText=r.text
+    #responseText=r.text
     r.raise_for_status()
     with open(outputfile, writeType) as f:
         f.write(r.content)                 # write data to file
