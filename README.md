@@ -37,7 +37,7 @@ This topic contains the following sections:
   
 
 3. Create an access point in SAS Customer Intelligence 360.
-    1. From the user interface, navigate to **General Settings** > **External** > **Access**.
+    1. From the user interface, navigate to **General Settings** > **External Access** > **Access Points**.
     2. Create a new access point if one does not exist.
     3. Get the following information from the access point:  
        ```
@@ -115,6 +115,9 @@ folder:
 150 partitions:  
 ```py discover.py -m detail -svn 3 -l 150 -cf yes -cd "," -ch yes```
 
+* Download the Plan data tables, create a CSV file, use the ";" (semicolon) delimiter, and include a column header in 
+the first row:  
+```py discover.py -m snapshot -ct plan -svn 5 -cf yes -cd ";" -ch yes```
 
 <a id="contributing"> </a>
 
