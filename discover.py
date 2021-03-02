@@ -3,7 +3,7 @@
 Copyright © 2019, SAS Institute Inc., Cary, NC, USA.  All Rights Reserved.
 SPDX-License-Identifier: Apache-2.0
 Created on Nov 3, 2017
-last update on Feb 20, 2020
+last update on Mar 01, 2021
 Version 0.9
 @authors: Mathias Bouten , Shashikant Deore
 NOTE: This Discover Download script should help to better understand 
@@ -23,9 +23,9 @@ import pandas
 import backoff
 
 #version and update date
-version = 'V0.9'
-updateDate = '23 Mar 2020'
-downloadClient = 'ci360pythonV0.9'
+version = 'V0.91'
+updateDate = '01 Mar 2021'
+downloadClient = 'ci360pythonV0.91'
 
 # default values
 limit     = "20" 
@@ -940,13 +940,21 @@ versionUpdate()
 resetInProgress=False
 
 # read config file
-config = readConfig(dir_config + 'config.txt')   
+config = readConfig(dir_config + 'config.txt')
+
+# PyJWT returns str type for jwt.encode() function: https://pyjwt.readthedocs.io/en/latest/changelog.html#improve-typings
+# For backwards compatibility for older PyJwt releases, decode or return token value based on type.
+def decodeToken(token):
+    if (type(token)) == bytes:
+        return bytes.decode(token)
+    else:
+        return token
 
 # Generate the JWT
 encodedSecret = base64.b64encode(bytes(config['secret'], 'utf-8'))
 token = jwt.encode({'clientID': config['tenantId']}, encodedSecret, algorithm='HS256')
 #print('\nJWT token: ' + bytes.decode(token))
-headers = {'authorization': "Bearer "+bytes.decode(token),'cache-control': "no-cache"}
+headers = {'authorization': "Bearer "+ decodeToken(token),'cache-control': "no-cache"}
 
 # modify discover Reset API URL
 #url = createDiscoverResetAPIUrl(config)
