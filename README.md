@@ -161,4 +161,4 @@ This project is licensed under the [Apache 2.0 License](LICENSE).
 
 
 ## Additional Resources
-For more information on the REST API that this script uses, see [Downloading Data Tables with the REST API](https://documentation.sas.com/?cdcId=cintcdc&cdcVersion=production.a&docsetId=cintag&docsetTarget=dat-export-api.htm).
+For more information, see [Downloading Data Tables with the REST API](https://go.documentation.sas.com/?softwareId=ONEMKTMID&softwareVersion=production.a&softwareContextId=DownloadDataTables) in the Help Center for SAS Customer Intelligence 360.
