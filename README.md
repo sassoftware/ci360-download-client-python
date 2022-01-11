@@ -10,8 +10,7 @@ The script can perform the following tasks:
  * Keep track of all initiated downloads. This lets you download a delta from the last complete download and append it to one file per table.
 
 This topic contains the following sections:
-* [Prerequisites](#prerequisites)
-* [Installation](#installation)
+* [Configuration](#configuration)
 * [Using the Download Script](#using-the-download-script)
     * [Considerations](#considerations)
     * [Running the script](#running-the-script)
@@ -22,7 +21,7 @@ This topic contains the following sections:
 
 
 
-## Prerequisites
+## Configuration
 1. Install Python (version 3 or later) from https://www.python.org/.
 
    **Tip:** Select the option to add Python to your PATH variable. If you choose the advanced installation option, make sure to install the pip utility.
@@ -48,20 +47,17 @@ This topic contains the following sections:
         Tenant ID: abc123-ci360-tenant-id-xyz  
         Client secret: ABC123ci360clientSecretXYZ  
        ```
+4. Download the Python script from this repository and save it to your local machine.
 
+5. In the `./dsccnfg/config.txt` file, set the following variables for your tenant:
+   ```
+     agentName = ci360_agent
+     tenantId  = abc123-ci360-tenant-id-xyz
+     secret    = ABC123ci360clientSecretXYZ
+     baseUrl   = https://extapigwservice-<server>/marketingGateway/discoverService/dataDownload/eventData/
+   ```
 
-## Installation
-1. Download the Python script and save it to your local machine.
-2. Set up python3 with required libraries.
-3. In the `./dsccnfg/config.txt` file, set the following variables for your tenant:
-```
-  agentName = ci360_agent
-  tenantId  = abc123-ci360-tenant-id-xyz
-  secret    = ABC123ci360clientSecretXYZ
-  baseUrl   = https://extapigwservice-<server>/marketingGateway/discoverService/dataDownload/eventData/
-```
-
-4. Verify the installation by running the following command from command prompt:  
+6. Verify the installation by running the following command from command prompt:  
 ```py discover.py –h```
 
 
@@ -112,6 +108,7 @@ These are the parameters to use when you run the discover.py script:
 | -ch         | Include a column header in the first row. Set the value to `yes` or `no`. |
 | -cl         | Clean the download .zip files. By default, the files are deleted, but you can set this parameter to `no` to keep them. |
 
+**Note:** The start and end ranges are only used for the script's first run. After the first run, the download history is stored in the data/dsccnfg directory. To force the script to use the variables for start date and end date, delete or move the history information.
 
 ### Examples
 
