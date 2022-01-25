@@ -95,7 +95,7 @@ These are the parameters to use when you run the discover.py script:
 | Parameter   | Description       |
 | :---------- | :-----------------|
 | -h          | Displays the help |
-| -m          | The table set to download. Use one of these values:<br><ul><li>detail</li><li>dbtReport</li><li>snapshot (for identity and metadata tables)</li></ul>  |
+| -m          | The table set to download. Use one of these values:<br><ul><li>detail</li><li>dbtReport</li><li>snapshot (for CDM, identity, and metadata tables)</li></ul>  |
 | -svn        | Specify a specific schema of tables to download. |
 | -st         | The start value in this datetime format: `yyyy-mm-ddThh` |
 | -et         | The end value in this datetime format: `yyyy-mm-ddThh`   |
