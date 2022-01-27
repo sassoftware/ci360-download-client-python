@@ -95,7 +95,7 @@ These are the parameters to use when you run the discover.py script:
 | Parameter   | Description       |
 | :---------- | :-----------------|
 | -h          | Displays the help |
-| -m          | The table set to download. Use one of these values:<br><ul><li>detail</li><li>dbtReport</li><li>snapshot (for CDM, identity, and metadata tables)</li></ul>  |
+| -m          | The table set to download. Use one of these values:<br><ul><li>detail (This value downloads Detail mart tables and the partitioned CDM tables - cdm_contact_history and cdm_response_history.)</li><li>dbtReport</li><li>snapshot (for CDM tables that are not partitioned, identity tables, and metadata tables)</li></ul>  |
 | -svn        | Specify a specific schema of tables to download. |
 | -st         | The start value in this datetime format: `yyyy-mm-ddThh` |
 | -et         | The end value in this datetime format: `yyyy-mm-ddThh`   |
@@ -120,6 +120,10 @@ These are the parameters to use when you run the discover.py script:
 
 * Download the snapshot tables:  
 ```py discover.py –m snapshot```
+
+* Download the complete set of the CDM tables (both partitioned tables and non-partitioned tables):  
+```py discover.py –m snapshot -ct cdm```  
+```py discover.py –m detail -ct cdm```
 
 * Download the detail tables (with only the delta from the last download), create a CSV file, and append to the existing files:  
 ```py discover.py –m detail –d yes –cf yes –a yes```
