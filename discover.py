@@ -391,8 +391,22 @@ def download( url, outputfile, writeType):
     #r.status_code=409
     #responseText=r.text
     r.raise_for_status()
-    with open(outputfile, writeType) as f:
-        f.write(r.content)                 # write data to file
+    #with open(outputfile, writeType) as f:
+    #    f.write(r.content)                 # write data to file
+
+    # Retry for PermissionError in the open statement
+    retry_attempts = 5
+    for attempt in range(retry_attempts):
+        try:
+            with open(outputfile, writeType) as f:
+                f.write(r.content)  # Write data to file
+            break  # If the operation succeeds, exit the loop
+        except PermissionError:
+            if attempt < retry_attempts - 1:  # Don't sleep after the last attempt
+                print(f"PermissionError occurred. Retry {attempt + 1}/{retry_attempts} after 1 second.")
+                time.sleep(2)  # Wait for 1 second before retrying
+            else:
+                raise  # If it fails after the max retries, raise the exception
 
 def unzipFile(in_file,out_file,in_delimiter,out_delimiter,header):
     #read file line by line and write columns as per schema 
