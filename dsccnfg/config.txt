@@ -8,6 +8,6 @@ tenantId  = abc123-ci360-tenant-id-xyz
 secret    = ABC123ci360clientSecretXYZ
 
 # CI360 Download URL
-baseUrl   = https://extapigwservice-dev.cidev.sas.us/marketingGateway/discoverService/dataDownload/eventData/
+baseUrl   = https://extapigwservice-<server>/marketingGateway/discoverService/dataDownload/eventData/
             
 
