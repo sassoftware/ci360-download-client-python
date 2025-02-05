@@ -27,7 +27,7 @@ This topic contains the following sections:
    **Tip:** Select the option to add Python to your PATH variable. If you choose the advanced installation option, make sure to install the pip utility.
    
 2. Make sure the following modules are installed for Python: `argparse`, `backoff`, `base64`, `codecs`, `csv`, `gzip`, `json`, `os`, 
-`pandas`, `PyJWT`, `requests`, `sys`, `time`, and `tqdm`.
+`pandas` (version 1.3.0 or later), `PyJWT`, `requests`, `sys`, `time`, and `tqdm`.
 
      In most cases, many of the modules are installed by default. To list all packages that are installed with Python 
      (through pip or by default), use this command:  
@@ -100,7 +100,7 @@ These are the parameters to use when you run the discover.py script:
 | -st         | The start value in this datetime format: `yyyy-mm-ddThh` |
 | -et         | The end value in this datetime format: `yyyy-mm-ddThh`   |
 | -ct         | The category of tables to download. When the parameter is not specified, you download tables for all the categories that you have a license to access.<br><br>To download tables from a specific category, you can use one of these values:<ul><li>cdm</li><li>discover</li><li>engagedigital</li><li>engagedirect</li><li>engagemetadata</li><li>engagemobile</li><li>engageweb</li><li>engageemail</li><li>optoutdata</li><li>plan</li></ul><br>For more information, see [Schemas and Categories](https://go.documentation.sas.com/?cdcId=cintcdc&cdcVersion=production.a&docsetId=cintag&docsetTarget=dat-export-api-sch.htm).| 
-| -d          | Download only the changes (the delta) from the previous download. Set the value to `yes` or `no`. If you use this parameter, a history file must exist on your system or the script exits with an error. |
+| -d          | Download only the changes (the delta) from the previous download. Set the value to `yes` or `no`. |
 | -l          | For partitioned tables, specify a limit of partitions to download. For example, `-l 150` downloads only the first 150 partitions of a specific set.|
 | -a          | Append the download to the existing files. Set the value to `yes` or `no`.  |
 | -cf         | Create a CSV file from the download tables. Set the value to `yes` or `no`. |
