@@ -322,7 +322,7 @@ def createDiscoverResetAPIUrl(config):
 def createDiscoverAPIUrlFromHref(config,href):
     # function to generate the reset API 
     baseUrl = config['baseUrl']
-    baseUrlHost = "{0.scheme}://{0.netloc}/".format(urlsplit(baseUrl))
+    baseUrlHost = "{0.scheme}://{0.netloc}".format(urlsplit(baseUrl))
     url= baseUrlHost +  href
     return url
 
