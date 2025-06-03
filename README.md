@@ -92,22 +92,22 @@ You can verify which version runs by default with the following command: `python
 
 These are the parameters to use when you run the discover.py script:
 
-| Parameter              | Description       |
+| Parameter &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; | Description       |
 | :----------------------| :-----------------|
 | -h, --help             | Displays the help |
 | -m, --mart             | The table set to download. Use one of these values:<br><ul><li>detail (This value downloads Detail mart tables and the partitioned CDM tables - cdm_contact_history and cdm_response_history.)</li><li>dbtReport</li><li>snapshot (for CDM tables that are not partitioned, identity tables, and metadata tables)</li></ul>  |
-| -svn, --schemaversion  | Specify a specific schema of tables to download. For example: `17`. |
+| -svn,<br>--schemaversion  | Specify a specific schema of tables to download. For example: `17`. |
 | -st, --start           | The start value in this datetime format: `yyyy-mm-ddThh` |
 | -et, --end             | The end value in this datetime format: `yyyy-mm-ddThh`   |
-| -ct, --category        | The category of tables to download. When the parameter is not specified, you download tables for all the categories that you have a license to access.<br><br>To download tables from a specific category, you can use one of these values:<ul><li>cdm</li><li>discover</li><li>engagedigital</li><li>engagedirect</li><li>engagemetadata</li><li>engagemobile</li><li>engageweb</li><li>engageemail</li><li>optoutdata</li><li>plan</li></ul><br>For more information, see [Schemas and Categories](https://go.documentation.sas.com/?cdcId=cintcdc&cdcVersion=production.a&docsetId=cintag&docsetTarget=dat-export-api-sch.htm).| 
+| -ct, <br>--category        | The category of tables to download. When the parameter is not specified, you download tables for all the categories that you have a license to access.<br><br>To download tables from a specific category, you can use one of these values:<ul><li>cdm</li><li>discover</li><li>engagedigital</li><li>engagedirect</li><li>engagemetadata</li><li>engagemobile</li><li>engageweb</li><li>engageemail</li><li>optoutdata</li><li>plan</li></ul><br>For more information, see [Schemas and Categories](https://go.documentation.sas.com/?cdcId=cintcdc&cdcVersion=production.a&docsetId=cintag&docsetTarget=dat-export-api-sch.htm).| 
 | -d, --delta            | Download only the changes (the delta) from the previous download. Set the value to `yes` or `no`. |
-| -l, --limit            | For partitioned tables, specify a limit of partitions to download. For example, `-l 150` downloads only the first 150 partitions of a specific set.|
+| -l, --limit            | For partitioned tables, specify a limit of partitions to download. For example, `-l 150` or `--limit=150` downloads only the first 150 partitions of a specific set.|
 | -a, --append           | Append the download to the existing files. Set the value to `yes` or `no`.  |
 | -cf, --csvflag         | Create a CSV file from the download tables. Set the value to `yes` or `no`.<br>**Note:** This parameter must be enabled for the other CSV parameters to take effect.|
-| -cd, --csvdelimiter    | For a CSV file, specify a delimiter other than the default (|). |
+| -cd, <br>--csvdelimiter    | For a CSV file, specify a delimiter other than the default pipe character ( `\|` ). |
 | -ch, --csvheader       | For a CSV file, include a column header in the first row. Set the value to `yes` or `no`. |
 | -cq, --csvquote        | For a CSV file, enclose field values in quotation marks ("). Set the value to `yes` or `no`. |
-| -cqc, --csvquotechar   | For a CSV file, override the default character (") to enclose field values. For example: `@`. |
+| -cqc, <br>--csvquotechar   | For a CSV file, override the default character (") that encloses field values. For example: `@`. |
 | -cl, --clean           | Clean the download .zip files. By default, the files are deleted, but you can set this parameter to `no` to keep them. |
 
 **Note:** The start and end ranges are only used for the script's first run. After the first run, the download history is stored in the dsccnfg directory. To force the script to use the variables for start date and end date, delete or move the history information.
@@ -116,41 +116,59 @@ These are the parameters to use when you run the discover.py script:
 
 ### Examples
 
-* Download the detail tables:  
-```py discover.py –m detail```
+* Download the Detail tables:
+  
+  ```py discover.py –m detail```
+  
+  Or:
+  
+  ```py discover.py –-mart=detail```
 
-* Download the discover Base tables:  
-```py discover.py –m dbtReport```
+* Download the complete set of the CDM tables (both partitioned tables and non-partitioned tables):
+  
+  ```py discover.py –m snapshot -ct cdm```
+  
+  ```py discover.py –m detail -ct cdm```
+  
+  Or:
+  
+  ```py discover.py --mart=snapshot --category=cdm```  
+  
+  ```py discover.py --mart=detail --category=cdm```
 
-* Download the snapshot tables:  
-```py discover.py –m snapshot```
+* Download the detail tables (with only the delta from the last download), create a CSV file, and append to the existing files:
+  
+  ```py discover.py –m detail –d yes –cf yes –a yes```
+  
+  Or:
+  
+  ```py discover.py –-mart=detail –-delta=yes –-csvflag=yes –-append=yes```
 
-* Download the complete set of the CDM tables (both partitioned tables and non-partitioned tables):  
-```py discover.py –m snapshot -ct cdm```  
-```py discover.py –m detail -ct cdm```
+* Download the detail tables for the specific time range from start hour (`-st`) to end hour (`-et`):
+  
+  ```py discover.py -m detail -st 2025-04-01T00 -et 2025-04-01T12```
 
-* Download the detail tables (with only the delta from the last download), create a CSV file, and append to the existing files:  
-```py discover.py –m detail –d yes –cf yes –a yes```
+  Or:
 
-* Download the detail tables for the specific time range from start hour (`-st`) to end hour (`-et`):  
-```py discover.py -m detail -st 2019-12-01T00 -et 2019-12-01T12```
+  ```py discover.py --mart=detail --start=2025-04-01T00 --end=2025-04-01T12```
 
 * Download the discover base tables, create a CSV file, use the ";" (semicolon) delimiter, and include a column header in 
-the first row:  
-```py discover.py -m dbtReport -cf yes -cd ";" -ch yes```
+the first row:
 
-* This example is similar to the previous example, but the option `-cl no` keeps the downloaded zip files in the download 
-folder:  
-```py discover.py -m dbtReport -cf yes -cd ";" -ch yes -cl no```
+  ```py discover.py -m dbtReport -cf yes -cd ";" -ch yes```
+
+  Or:
+
+  ```py discover.py --mart=dbtReport --csvflag=yes --csvdelimiter=";" --csvheader=yes```
 
 * Download the detail tables with a specific schema (`-svn`), and specify a limit (`-l`) to download only the most recent 
-150 partitions:  
-```py discover.py -m detail -svn 3 -l 150 -cf yes -cd "," -ch yes```
+150 partitions:
+  
+  ```py discover.py -m detail -svn 17 -l 150 -cf yes -cd "," -ch yes```
 
-* Download the Plan data tables, create a CSV file, use the ";" (semicolon) delimiter, and include a column header in 
-the first row:  
-```py discover.py -m snapshot -ct plan -svn 5 -cf yes -cd ";" -ch yes```
+  Or:
 
+  ```py discover.py --mart=detail --schemaversion=17 --limit=150 --csvflag=yes --csvdelimiter=";" --csvheader=yes```
 
 
 ## Contributing
