@@ -3,7 +3,7 @@
 Copyright © 2019, SAS Institute Inc., Cary, NC, USA.  All Rights Reserved.
 SPDX-License-Identifier: Apache-2.0
 Created on Nov 3, 2017
-last update on Mar 01, 2021
+last update on Feb 5, 2025
 Version 0.9
 @authors: Mathias Bouten , Shashikant Deore
 NOTE: This Discover Download script should help to better understand 
@@ -23,9 +23,9 @@ import pandas
 import backoff
 
 #version and update date
-version = 'V0.91'
-updateDate = '01 Mar 2021'
-downloadClient = 'ci360pythonV0.91'
+version = 'V0.92'
+updateDate = '05 Feb 2025'
+downloadClient = 'ci360pythonV0.92'
 
 # default values
 limit     = "20" 
@@ -104,14 +104,19 @@ def versionUpdate():
 def getNextDataRangeStart():
     # set  nextDataRangeStart = lastDataRangeEnd + 1 ms 
     historyFile = dir_config + 'download_history_' + martName + '.csv'
-    with open(historyFile) as f:
-        last = f.readlines()[-1]
-
-    lastDataRangeEnd = last.split(';',3)[1]
-    adjustedTime = datetime.strptime(lastDataRangeEnd, '%Y-%m-%dT%H:%M:%S.%fZ')
-    adjustedTime += pandas.to_timedelta(1, unit='ms')
-    adjustedTimeStr = adjustedTime.strftime('%Y-%m-%dT%H:%M:%S.000Z')
-    return adjustedTimeStr
+    
+    try:
+        with open(historyFile) as f:
+            last = f.readlines()[-1]
+    
+        lastDataRangeEnd = last.split(';',3)[1]
+        adjustedTime = datetime.strptime(lastDataRangeEnd, '%Y-%m-%dT%H:%M:%S.%fZ')
+        adjustedTime += pandas.to_timedelta(1, unit='ms')
+        adjustedTimeStr = adjustedTime.strftime('%Y-%m-%dT%H:%M:%S.000Z')
+        return adjustedTimeStr
+    except FileNotFoundError as e:
+        print('\n', e)
+        raise SystemExit('\nFATAL: When you use the -d parameter, a history file must exist.')
 
 def logFileNmtimeStamped(filename, fmt='{filename}_%Y%m%dT%H%M%S.log'):
     #return datetime.datetime.now().strftime(fmt).format(filename=filename)
@@ -652,9 +657,13 @@ def readResetRange(resetFile):
     # this will be later used for lookups
     # e.g. to check if the reset records exits 
     # resetFile = dir_config + 'reset_range_' + martName + '.csv'
+    
+    # weflower 2025-02-05: pandas 1.3.0+ deprecated error_bad_lines and replaced with on_bad_lines
+    # https://pandas.pydata.org/docs/reference/api/pandas.read_csv.html
+    
     df = pandas.read_csv(resetFile
 			            ,sep=';'
-                        ,error_bad_lines=False
+                        ,on_bad_lines='warn'
 			            ,header=0
 			            ,names=['dataRangeStart','dataRangeEnd','resetCompleted_dttm','download_dttm']
 			            ,parse_dates =['dataRangeStart','dataRangeEnd','resetCompleted_dttm','download_dttm'])
