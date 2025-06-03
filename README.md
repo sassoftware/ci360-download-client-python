@@ -65,7 +65,7 @@ This topic contains the following sections:
 
 ### Considerations
 Before starting a download, make a note of the following things:
-* When you use the option to create a CSV, choose a delimiter that is not present in the source data.
+* When you use the option to create a CSV, choose a delimiter that is not present in the source data. You can also use the parameters to quote CSV fields to help you delineate columns.
 * If data resets were processed and you download data in append mode, the old data is not deleted.  
   The new reset data for the same time period will be appended to the file.
 * If you download data using schema 1 and then use append mode to download data using schema 6, the data is appended based on schema 6. However, the header rows in the existing file will not be updated.
