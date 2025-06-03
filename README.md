@@ -10,7 +10,7 @@ The script can perform the following tasks:
  * Keep track of all initiated downloads. This lets you download a delta from the last complete download and append it to one file per table.
 
 This topic contains the following sections:
-* [Configuration](#configuration)
+* [Prerequisites](#prerequisites)
 * [Using the Download Script](#using-the-download-script)
     * [Considerations](#considerations)
     * [Running the script](#running-the-script)
@@ -21,7 +21,7 @@ This topic contains the following sections:
 
 
 
-## Configuration
+## Prerequisites
 1. Install Python (version 3 or later) from https://www.python.org/.
 
    **Tip:** Select the option to add Python to your PATH variable. If you choose the advanced installation option, make sure to install the pip utility.
@@ -92,21 +92,23 @@ You can verify which version runs by default with the following command: `python
 
 These are the parameters to use when you run the discover.py script:
 
-| Parameter   | Description       |
-| :---------- | :-----------------|
-| -h          | Displays the help |
-| -m          | The table set to download. Use one of these values:<br><ul><li>detail (This value downloads Detail mart tables and the partitioned CDM tables - cdm_contact_history and cdm_response_history.)</li><li>dbtReport</li><li>snapshot (for CDM tables that are not partitioned, identity tables, and metadata tables)</li></ul>  |
-| -svn        | Specify a specific schema of tables to download. |
-| -st         | The start value in this datetime format: `yyyy-mm-ddThh` |
-| -et         | The end value in this datetime format: `yyyy-mm-ddThh`   |
-| -ct         | The category of tables to download. When the parameter is not specified, you download tables for all the categories that you have a license to access.<br><br>To download tables from a specific category, you can use one of these values:<ul><li>cdm</li><li>discover</li><li>engagedigital</li><li>engagedirect</li><li>engagemetadata</li><li>engagemobile</li><li>engageweb</li><li>engageemail</li><li>optoutdata</li><li>plan</li></ul><br>For more information, see [Schemas and Categories](https://go.documentation.sas.com/?cdcId=cintcdc&cdcVersion=production.a&docsetId=cintag&docsetTarget=dat-export-api-sch.htm).| 
-| -d          | Download only the changes (the delta) from the previous download. Set the value to `yes` or `no`. |
-| -l          | For partitioned tables, specify a limit of partitions to download. For example, `-l 150` downloads only the first 150 partitions of a specific set.|
-| -a          | Append the download to the existing files. Set the value to `yes` or `no`.  |
-| -cf         | Create a CSV file from the download tables. Set the value to `yes` or `no`. |
-| -cd         | Specify a delimiter other than the default |
-| -ch         | Include a column header in the first row. Set the value to `yes` or `no`. |
-| -cl         | Clean the download .zip files. By default, the files are deleted, but you can set this parameter to `no` to keep them. |
+| Parameter              | Description       |
+| :----------------------| :-----------------|
+| -h, --help             | Displays the help |
+| -m, --mart             | The table set to download. Use one of these values:<br><ul><li>detail (This value downloads Detail mart tables and the partitioned CDM tables - cdm_contact_history and cdm_response_history.)</li><li>dbtReport</li><li>snapshot (for CDM tables that are not partitioned, identity tables, and metadata tables)</li></ul>  |
+| -svn, --schemaversion  | Specify a specific schema of tables to download. For example: `17`. |
+| -st, --start           | The start value in this datetime format: `yyyy-mm-ddThh` |
+| -et, --end             | The end value in this datetime format: `yyyy-mm-ddThh`   |
+| -ct, --category        | The category of tables to download. When the parameter is not specified, you download tables for all the categories that you have a license to access.<br><br>To download tables from a specific category, you can use one of these values:<ul><li>cdm</li><li>discover</li><li>engagedigital</li><li>engagedirect</li><li>engagemetadata</li><li>engagemobile</li><li>engageweb</li><li>engageemail</li><li>optoutdata</li><li>plan</li></ul><br>For more information, see [Schemas and Categories](https://go.documentation.sas.com/?cdcId=cintcdc&cdcVersion=production.a&docsetId=cintag&docsetTarget=dat-export-api-sch.htm).| 
+| -d, --delta            | Download only the changes (the delta) from the previous download. Set the value to `yes` or `no`. |
+| -l, --limit            | For partitioned tables, specify a limit of partitions to download. For example, `-l 150` downloads only the first 150 partitions of a specific set.|
+| -a, --append           | Append the download to the existing files. Set the value to `yes` or `no`.  |
+| -cf, --csvflag         | Create a CSV file from the download tables. Set the value to `yes` or `no`.<br>**Note:** This parameter must be enabled for the other CSV parameters to take effect.|
+| -cd, --csvdelimiter    | For a CSV file, specify a delimiter other than the default (|). |
+| -ch, --csvheader       | For a CSV file, include a column header in the first row. Set the value to `yes` or `no`. |
+| -cq, --csvquote        | For a CSV file, enclose field values in quotation marks ("). Set the value to `yes` or `no`. |
+| -cqc, --csvquotechar   | For a CSV file, override the default character (") to enclose field values. For example: `@`. |
+| -cl, --clean           | Clean the download .zip files. By default, the files are deleted, but you can set this parameter to `no` to keep them. |
 
 **Note:** The start and end ranges are only used for the script's first run. After the first run, the download history is stored in the dsccnfg directory. To force the script to use the variables for start date and end date, delete or move the history information.
 
