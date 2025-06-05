@@ -43,7 +43,7 @@ allhourstatus='true'
 dayOffset = "60"
 max_retry_attempts = 4
 
-# folders
+# folders; wiflow 2025-06-05 updated to make relative to script location
 base_dir = os.path.dirname(os.path.realpath(__file__)) # dir of Python script
 dir_log    = f'{base_dir}/log/'
 dir_csv    = f'{base_dir}/dscwh/'
@@ -481,18 +481,9 @@ def createCSV(in_file, out_file, in_delimiter, out_delimiter, header):
             rows = rows+1
             try:
                 csvWriter.writerow(line)
-            except (UnicodeEncodeError) as e:
+            except (csv.Error) as e:
                 error = error+1
                 errorMsg = errorMsg +'\nerror in row: ' + str(rows) + ' - ' + str(e)
-        
-        
-        # for line in in_f:
-        #     rows = rows+1
-        #     try:
-        #         out_f.write(line.replace(in_delimiter, out_delimiter))
-        #     except (UnicodeEncodeError) as e:
-        #         error = error+1
-        #         errorMsg = errorMsg +'\nerror in row: ' + str(rows) + ' - ' + str(e)
 
     logger("...CSV created with " + str(rows) + " rows - errors: " + str(error),'a')
     
@@ -517,13 +508,23 @@ def appendCSV(in_file, out_file, in_delimiter, out_delimiter):
     errorMsg = ''
     with codecs.open(in_file, 'r','utf-8') as in_f, \
          codecs.open(out_file, 'a','utf-8') as out_f:
+
+        # create reader based on existing delimiter
+        csvReader = csv.reader(in_f, delimiter=in_delimiter)
+        
+        # set CSV field quoting based on parameter
+        if csvquote == 'yes':
+            csvWriter = csv.writer(out_f, delimiter=out_delimiter, lineterminator='\n', quoting=csv.QUOTE_ALL, quotechar=csvquotechar)
+        else:
+            csvWriter = csv.writer(out_f, delimiter=out_delimiter, lineterminator='\n')
+
         # go line by line and replace delimiter
         rows = 0
-        for line in in_f:
+        for line in csvReader:
             rows = rows+1
             try:
-                out_f.write(line.replace(in_delimiter, out_delimiter))
-            except (UnicodeEncodeError) as e:
+                csvWriter.writerow(line)
+            except (csv.Error) as e:
                 error = error+1
                 errorMsg = errorMsg +'\nerror in row: ' + str(rows) + ' - ' + str(e)
 
@@ -535,6 +536,7 @@ def appendCSV(in_file, out_file, in_delimiter, out_delimiter):
     
     if cleanFiles == 'yes':
         os.remove(in_file)
+
 
 def logError(file, message):
     errorLog = dir_log + 'error_' + file + '.log'
