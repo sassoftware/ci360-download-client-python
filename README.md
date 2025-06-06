@@ -74,19 +74,21 @@ Before starting a download, make a note of the following things:
 
 1. Open a command prompt.
 2. Run the discover.py script with <a href="#script-parameters">parameter values</a> that are based on the tables that you want to download. For example, to download the detail tables with a start and end date range, you can run the following command:
-```
-  py discover.py -m detail -st 2019-12-01T00 -et 2019-12-01T12
-```
 
----
-**Note:** On Unix-like environments and Macs, the default `py` or `python` command might default to Python 2 if that version is installed. Uninstall earlier versions of Python, or explicitly call Python 3 when you run script like this example:
-```
-python3 discover.py -m detail -st 2019-12-01T00 -et 2019-12-01T12
-```
+   ```cmd
+   py discover.py -m detail -st 2019-12-01T00 -et 2019-12-01T12
+   ```
 
-You can verify which version runs by default with the following command: `python --version`
+   ---
+   **Note:** On Unix-like environments and Macs, the default `py` or `python` command might default to Python 2 if that version is    installed. Uninstall earlier versions of Python, or explicitly call Python 3 when you run script like this example:
 
----
+   ```cmd
+   python3 discover.py -m detail -st 2019-12-01T00 -et 2019-12-01T12
+   ```
+
+   You can verify which version runs by default with the following command: `python --version`
+
+   ---
 
 <a name="script-parameters"> </a>
 
@@ -102,11 +104,11 @@ These are the parameters to use when you run the discover.py script:
 | -ct, <br>--category        | The category of tables to download. When the parameter is not specified, you download tables for all the categories that you have a license to access.<br><br>To download tables from a specific category, you can use one of these values:<ul><li>cdm</li><li>discover</li><li>engagedigital</li><li>engagedirect</li><li>engagemetadata</li><li>engagemobile</li><li>engageweb</li><li>engageemail</li><li>optoutdata</li><li>plan</li></ul><br>For more information, see [Schemas and Categories](https://go.documentation.sas.com/?cdcId=cintcdc&cdcVersion=production.a&docsetId=cintag&docsetTarget=dat-export-api-sch.htm).| 
 | -d, --delta            | Download only the changes (the delta) from the previous download. Set the value to `yes` or `no`. |
 | -l, --limit            | For partitioned tables, specify a limit of partitions to download. For example, `-l 150` or `--limit=150` downloads only the first 150 partitions of a specific set.|
-| -a, --append           | Append the download to the existing files. Set the value to `yes` or `no`.  |
-| -cf, --csvflag         | Create a CSV file from the download tables. Set the value to `yes` or `no`.<br>**Note:** This parameter must be enabled for the other CSV parameters to take effect.|
+| -a, --append           | Append the download to the existing files. Set the value to `yes` or `no`. <br>The first time that you use the append option, a new file is created for each table without the datetimestamp prefix. Subsequent runs append records to these files. <br><br><hr>**Note:** For consistency, do not modify the CSV options for delimiter or quotation enclosure after the initial download (or after the first download that uses the append option).<br><br>During the first download with the append option enabled,  all fields in the combined file use the delimiter and quote options that are specified during that download call. However, for subsequent append operations the records use the delimiter and quote options for that specific download.<br><br>For example, if the original records used the delimiter "\|" but you enable append and set the delimiter to ",", all records in the combined file use the new delimiter. If you then change the delimiter to ";" for the next download with append enabled, only the new records use the ";" delimiter.<hr><br> |
+| -cf, --csvflag         | Create a CSV file from the download tables. Set the value to `yes` or `no`.<br><br>**Note:** This parameter must be enabled for the other CSV parameters to take effect.|
 | -cd, <br>--csvdelimiter    | For a CSV file, specify a delimiter other than the default pipe character ( `\|` ). |
 | -ch, --csvheader       | For a CSV file, include a column header in the first row. Set the value to `yes` or `no`. |
-| -cq, --csvquote        | For a CSV file, enclose field values in quotation marks ("). Set the value to `yes` or `no`. |
+| -cq, --csvquote        | For a CSV file, enclose field values in quotation marks ("). Set the value to `yes` or `no`.|
 | -cqc, <br>--csvquotechar   | For a CSV file, override the default character (") that encloses field values. For example: `@`. |
 | -cl, --clean           | Clean the download .zip files. By default, the files are deleted, but you can set this parameter to `no` to keep them. |
 
