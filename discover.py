@@ -1,15 +1,15 @@
 #! python3
 '''
-Copyright © 2019, SAS Institute Inc., Cary, NC, USA.  All Rights Reserved.
+Copyright © 2025, SAS Institute Inc., Cary, NC, USA.  All Rights Reserved.
 SPDX-License-Identifier: Apache-2.0
 Created on Nov 3, 2017
-last update on Feb 5, 2025
-Version 0.9
-@authors: Mathias Bouten , Shashikant Deore
-NOTE: This Discover Download script should help to better understand 
-      the download API and can be used as a base to start interacting 
-      with the API and download collected customer information. It is
-      not officially supported by SAS. 
+last update on Jun 3, 2025
+Version 0.93
+@authors: Mathias Bouten, Shashikant Deore, Will Flowers
+NOTE: This Discover Download script can be used to better understand 
+      the download API and as a base for you to interact with 
+      the API to download collected customer data. This script is
+      not officially supported by SAS.
 '''
 
 import requests, base64
@@ -23,16 +23,18 @@ import pandas
 import backoff
 
 #version and update date
-version = 'V0.92'
-updateDate = '05 Feb 2025'
-downloadClient = 'ci360pythonV0.92'
+version = 'V0.93'
+updateDate = '05 June 2025'
+downloadClient = 'ci360pythonV0.93'
 
 # default values
 limit     = "20" 
 csvflag   = 'no'
 delimiter = '|'
 csvheader = 'yes'
-append    = 'no'
+csvquote = 'no'
+csvquotechar = '"'
+append = 'no'
 sohDelimiter = "\x01"
 progressbar = 'no'
 allhourstatus='true'
@@ -41,13 +43,14 @@ allhourstatus='true'
 dayOffset = "60"
 max_retry_attempts = 4
 
-# folders 
-dir_log    = 'log/'
-dir_csv    = 'dscwh/'
-dir_zip    = 'dscdonl/'
-dir_config = 'dsccnfg/'
-dir_extr   = 'dscextr/'
-dir_sql    = 'sql/'
+# folders; wiflow 2025-06-05 updated to make relative to script location
+base_dir = os.path.dirname(os.path.realpath(__file__)) # dir of Python script
+dir_log    = f'{base_dir}/log/'
+dir_csv    = f'{base_dir}/dscwh/'
+dir_zip    = f'{base_dir}/dscdonl/'
+dir_config = f'{base_dir}/dsccnfg/'
+dir_extr   = f'{base_dir}/dscextr/'
+dir_sql    = f'{base_dir}/sql/'
 
 # global variables
 querystring = {}
@@ -458,16 +461,27 @@ def createCSV(in_file, out_file, in_delimiter, out_delimiter, header):
     errorMsg = ''
     with codecs.open(in_file, 'r','utf-8') as in_f, \
          codecs.open(out_file, 'w','utf-8') as out_f:
+             
+        # create reader based on existing delimiter
+        csvReader = csv.reader(in_f, delimiter=in_delimiter)
+        
+        # set CSV field quoting based on parameter
+        if csvquote == 'yes':
+            csvWriter = csv.writer(out_f, delimiter=out_delimiter, lineterminator='\n', quoting=csv.QUOTE_ALL, quotechar=csvquotechar)
+        else:
+            csvWriter = csv.writer(out_f, delimiter=out_delimiter, lineterminator='\n')
+
         # print column header line in csv file if flag is yes
         if csvheader == 'yes':
             out_f.write(header+"\n")
-        # go line by line and replace delimiter
+
+        # go line by line and output to CSV with new delimiter
         rows = 0
-        for line in in_f:
+        for line in csvReader:
             rows = rows+1
             try:
-                out_f.write(line.replace(in_delimiter, out_delimiter))
-            except (UnicodeEncodeError) as e:
+                csvWriter.writerow(line)
+            except (csv.Error) as e:
                 error = error+1
                 errorMsg = errorMsg +'\nerror in row: ' + str(rows) + ' - ' + str(e)
 
@@ -494,13 +508,23 @@ def appendCSV(in_file, out_file, in_delimiter, out_delimiter):
     errorMsg = ''
     with codecs.open(in_file, 'r','utf-8') as in_f, \
          codecs.open(out_file, 'a','utf-8') as out_f:
+
+        # create reader based on existing delimiter
+        csvReader = csv.reader(in_f, delimiter=in_delimiter)
+        
+        # set CSV field quoting based on parameter
+        if csvquote == 'yes':
+            csvWriter = csv.writer(out_f, delimiter=out_delimiter, lineterminator='\n', quoting=csv.QUOTE_ALL, quotechar=csvquotechar)
+        else:
+            csvWriter = csv.writer(out_f, delimiter=out_delimiter, lineterminator='\n')
+
         # go line by line and replace delimiter
         rows = 0
-        for line in in_f:
+        for line in csvReader:
             rows = rows+1
             try:
-                out_f.write(line.replace(in_delimiter, out_delimiter))
-            except (UnicodeEncodeError) as e:
+                csvWriter.writerow(line)
+            except (csv.Error) as e:
                 error = error+1
                 errorMsg = errorMsg +'\nerror in row: ' + str(rows) + ' - ' + str(e)
 
@@ -512,6 +536,7 @@ def appendCSV(in_file, out_file, in_delimiter, out_delimiter):
     
     if cleanFiles == 'yes':
         os.remove(in_file)
+
 
 def logError(file, message):
     errorLog = dir_log + 'error_' + file + '.log'
@@ -810,55 +835,78 @@ def loopThroughResetPackages(url):
 
 #check command line arguments
 parser = argparse.ArgumentParser(description=
-        'Download CI360 Discover data for a specific data mart. \
-        \nOptional you can download data for a specific time range. \
-        \nOptional you can transform the downloaded data into a specific CSV file.\n \
-        \nExamples: py discover.py -m detail \
-        \n          py discover.py -m detail -d yes -cf yes -a yes \
-        \n          py discover.py -m detail -d yes -cf yes -a yes -pb yes \
-        \n          py discover.py -m detail -l 2 \
-        \n          py discover.py -m detail -st 2017-12-07T10 -et 2017-12-07T12 \
-        \n          py discover.py -m dbtReport -cf yes -cd ";" -ch yes \
-        \n          py discover.py -m snapshot '
-        , formatter_class=RawTextHelpFormatter)
+        'Download data tables from SAS Customer Intelligence 360. \
+        \n Required: You must specify the data mart with the -m or --mart parameter. \
+        \n Optional: Additional parameters enable you to specify the time range, whether \
+        \n to create a CSV file, and so on. \
+        \n \
+        \n Examples with short parameters: \
+        \n           py discover.py -m detail -svn 17 \
+        \n           py discover.py -m detail -d yes -cf yes -a yes -pb yes \
+        \n           py discover.py -m detail -l 2 \
+        \n           py discover.py -m detail -st 2025-04-07T10 -et 2025-04-07T12 \
+        \n           py discover.py -m dbtReport -cf yes -cd ";" -ch yes \
+        \n \
+        \n Examples with long parameters: \
+        \n           py discover.py --mart=detail --schemaversion=17 \
+        \n           py discover.py --mart=detail --delta=yes --csvflag=yes --append=yes --progressbar=yes \
+        \n           py discover.py --mart=detail --limit=2 \
+        \n           py discover.py --mart=detail --start=2025-04-07T10 --end=2025-04-07T12 \
+        \n           py discover.py --mart=dbtReport --csvflag=yes --csvdelimiter=";" --csvheader=yes \
+        ', formatter_class=RawTextHelpFormatter)
 
-parser.add_argument('-m', action='store', dest='mart', type=str, 
-    help='enter dataMart: detail, dbtReport or snapshot', required=True)
-parser.add_argument('-l', action='store', dest='limit', type=int, 
-    help='enter a limit: ie. 30 - default 20', required=False)
-parser.add_argument('-cd', action='store', dest='delimiter', type=str, 
-    help='enter a csv delimiter - default | (pipe)', required=False)
-parser.add_argument('-cf', action='store', dest='csvflag', type=str, 
-    help='create csv: yes or no - default no', required=False)
-parser.add_argument('-ch', action='store', dest='csvheader', type=str, 
-    help='csv column header row: yes or no - default yes', required=False)
-parser.add_argument('-st', action='store', dest='start', type=str, 
-    help='enter start time: ie. 2017-11-07T10', required=False)
-parser.add_argument('-et', action='store', dest='end', type=str, 
-    help='enter end time: ie. 2017-11-07T12', required=False)
-parser.add_argument('-a', action='store', dest='append', type=str, 
-    help='append to one file: yes or no - default no', required=False)
-parser.add_argument('-d', action='store', dest='delta', type=str, 
-    help='download delta: yes or no - default no', required=False)
-parser.add_argument('-cl', action='store', dest='clean', type=str, 
-    help='clean zip files: yes or no - default yes', required=False)
-parser.add_argument('-pb', action='store', dest='progressbar', type=str, 
-    help='show progress bar: yes or no - default no', required=False)
+# wiflow 2025-06-03 added long form parameters
+parser.add_argument('-m', '--mart', action='store', dest='mart', type=str, 
+    help='Data mart (the set of data tables) to donwload. Enter one of these values: detail, dbtReport, snapshot',
+    required=True)
+parser.add_argument('-l', '--limit', action='store', dest='limit', type=int, 
+    help='Limit of partitions to download. For example: 30 (the default is 20).',
+    required=False)
+parser.add_argument('-cf', '--csvflag', action='store', dest='csvflag', type=str, 
+    help='Create a CSV file from the downloaded tables. Enter yes or no (the default is no).',
+    required=False)
+parser.add_argument('-cd', '--csvdelimiter', action='store', dest='delimiter', type=str, 
+    help='Delimiter for the CSV file. The default is \"|\" (pipe).',
+    required=False)
+parser.add_argument('-ch', '--csvheader', action='store', dest='csvheader', type=str, 
+    help='Whether the CSV file should have a column header row. Enter yes or no (the default is yes).',
+    required=False)
+parser.add_argument('-st', '--start', action='store', dest='start', type=str, 
+    help='Start time for the data range. For example: 2025-04-07T10', required=False)
+parser.add_argument('-et', '--end', action='store', dest='end', type=str, 
+    help='End time for the data range. For example: 2025-04-07T12', required=False)
+parser.add_argument('-a', '--append', action='store', dest='append', type=str, 
+    help='Append the downloaded data to one file. Enter yes or no (the default is no).', required=False)
+parser.add_argument('-d', '--delta', action='store', dest='delta', type=str, 
+    help='Download only the updated data from tables (the delta). Enter yes or no (the default is no).', required=False)
+parser.add_argument('-cl', '--clean', action='store', dest='clean', type=str, 
+    help='Clean the .zip file after processing. Enter yes or no (the default is yes).', required=False)
+parser.add_argument('-pb', '--progressbar', action='store', dest='progressbar', type=str, 
+    help='Show a progress bar for downloads. Enter yes or no (the default is no).', required=False)
 
 #added 2018-11-21 by Mathias Bouten - new API features
 #parser.add_argument('-ahs', action='store', dest='allhourstatus', type=str, 
 #    help='enter includeAllHoursStatus flag: ie. true - default false', required=False)
-parser.add_argument('-shr', action='store', dest='subhourrange', type=str, default=60,
-    help='enter subHourlyDataRangeInMinutes: ie. 10', required=False)
-parser.add_argument('-svn', action='store', dest='schemaversion', type=str, default=1,
-    help='enter schemaVersion: ie. 3 - default 1', required=False)
-parser.add_argument('-ar', action='store', dest='autoreset', type=str, default='yes',
-    help='perform reset before download : yes or no - default yes', required=False)
-parser.add_argument('-ct', action='store', dest='category', type=str, default='discover',
-    help='category to download : e.g. discover,engagedirect .. - default discover', required=False)
+parser.add_argument('-shr', '--subhourrange', action='store', dest='subhourrange', type=str, default=60,
+    help='Download data ranges in minutes, instead of the default hourly range. For example: 10', required=False)
+parser.add_argument('-svn', '--schemaversion', action='store', dest='schemaversion', type=str, default=1,
+    help='Schema version, like: 17. The default is 1.', required=False)
+parser.add_argument('-ar', '--autoreset', action='store', dest='autoreset', type=str, default='yes',
+    help='Download reprocessed (reset) data from the data mart. Enter yes or no (the default is yes).', required=False)
+parser.add_argument('-ct', '--category', action='store', dest='category', type=str, default='discover',
+    help='Category for the tables to download (for example: all, discover, engagedirect, etc.). The default value is discover.', required=False)
 #added 2020-01-27 - sinshd -new API features - test mode download
-parser.add_argument('-tm', action='store', dest='testmode', type=str,
-    help='test mode download : e.g. PLANTESTMODE  ', required=False)
+parser.add_argument('-tm', '--testmode', action='store', dest='testmode', type=str,
+    help='Enable download of test mode tables. For example: PLANTESTMODE', required=False)
+
+# wiflow 2025-06-03 - added parameter to quote columns in CSV file per GitHub request:
+# https://github.com/sassoftware/ci360-download-client-python/issues/2
+parser.add_argument('-cq', '--csvquote', action='store', dest='csvquote', type=str,
+    help='For CSV files, encloses field values with quotation marks ("). Enter yes or no (the default is no). \
+          \nThis parameter has no effect if -cf or --csvflag is not set.', required=False)
+parser.add_argument('-cqc', '--csvquotechar', action='store', dest='csvquotechar', type=str,
+    help='For CSV files, override the default character (") that encloses fields. For example: @.\
+          \nThis parameter has no effect if -cq or --csvquote is not set.', required=False)
 
 args = parser.parse_args()
 
@@ -879,6 +927,12 @@ if args.csvflag is not None:
 if args.csvheader is not None:
     csvheader = str(args.csvheader)
     print('  csvheader: ' + csvheader)
+if args.csvquote is not None:
+    csvquote = str(args.csvquote)
+    print('  csvquote: ' + csvquote)
+if args.csvquotechar is not None:
+    csvquotechar = str(args.csvquotechar)
+    print('  csvquotechar: ' + csvquotechar)
 if args.clean is not None:
     cleanFiles = str(args.clean)
     print('  cleanFiles: ' + cleanFiles)
@@ -943,7 +997,7 @@ if args.testmode is not None:
 
 querystring["downloadClient"] = downloadClient
 print('  downloadClient: ' + downloadClient)
-################### START SCRITPT #####################
+################### START SCRIPT #####################
 
 # call version update function to update existing files
 
@@ -991,7 +1045,7 @@ if martName == 'detail' or martName == 'dbtReport':
         # set resetInProgress=True to indicate we are now in reset mode.
         # when resetInProgress, record download history to reset_download_history_mart.csv
         resetInProgress=True
-        # check if mart download history exists.if not exists then no need to run the resets
+        # check if mart download history exists. if not exists then no need to run the resets
         # this will avoid running resets when nothing is downloaded
         logger(' starting resets','n')
         historyFile = dir_config + 'download_history_' + martName + '.csv'
