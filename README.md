@@ -98,9 +98,9 @@ These are the parameters to use when you run the discover.py script:
 | :----------------------| :-----------------|
 | -h, --help             | Displays the help |
 | -m, --mart             | The table set to download. Use one of these values:<br><ul><li>detail (This value downloads Detail mart tables and the partitioned CDM tables - cdm_contact_history and cdm_response_history.)</li><li>dbtReport</li><li>snapshot (for CDM tables that are not partitioned, identity tables, and metadata tables)</li></ul>  |
-| -svn,<br>--schemaversion  | Specify a specific schema of tables to download. For example: `17`. |
-| -st, --start           | The start value in this datetime format: `yyyy-mm-ddThh` |
-| -et, --end             | The end value in this datetime format: `yyyy-mm-ddThh`   |
+| -svn,<br>--schemaversion  | Specify a specific schema of tables to download. For example: `20`. |
+| -st, --start           | The start value in this datetime format: `yyyy-mm-ddThh`. For example: `2025-04-01T00`<br><br>**Note:** To download the data for the entire day (that is, starting at 12:00 AM), make sure that the final two digits (for hour) are zeros. |
+| -et, --end             | The end value in this datetime format: `yyyy-mm-ddThh`. For example: `2025-04-03T14`   |
 | -ct, <br>--category        | The category of tables to download. When the parameter is not specified, you download tables for all the categories that you have a license to access.<br><br>To download tables from a specific category, you can use one of these values:<ul><li>cdm</li><li>discover</li><li>engagedigital</li><li>engagedirect</li><li>engagemetadata</li><li>engagemobile</li><li>engageweb</li><li>engageemail</li><li>optoutdata</li><li>plan</li></ul><br>For more information, see [Schemas and Categories](https://go.documentation.sas.com/?cdcId=cintcdc&cdcVersion=production.a&docsetId=cintag&docsetTarget=dat-export-api-sch.htm).| 
 | -d, --delta            | Download only the changes (the delta) from the previous download. Set the value to `yes` or `no`. |
 | -l, --limit            | For partitioned tables, specify a limit of partitions to download. For example, `-l 150` or `--limit=150` downloads only the first 150 partitions of a specific set.|
