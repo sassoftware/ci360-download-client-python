@@ -175,14 +175,14 @@ def printResetDetails(json_data):
 
 def createDiscoverAPIUrl(config):
     baseUrl = config['baseUrl']
-    if martName == 'detail':
+    if martName == 'detail' and 'metadata' not in category and 'plan' not in category and 'usage' not in category:
         url = baseUrl + 'detail/partitionedData'
-    elif martName == 'dbtReport':
+    elif martName == 'dbtReport' and 'metadata' not in category and 'plan' not in category and 'usage' not in category:
         url = baseUrl + 'dbtReport'
     elif martName == 'identity' or martName =='snapshot':
         url = baseUrl + 'detail/nonPartitionedData'
     else:
-        print('Error: wrong martName ')
+        print(f'Error: The mart name ({martName}) or category values ({category}) are incorrect or not compatible.')
         sys.exit()
     return url
 
@@ -716,7 +716,7 @@ def loopThroughDownloadPackages(url):
         prefix = ''
         
         # only for detail and dbtReport data mart display the ranges
-        if martName == 'detail' or martName == 'dbtReport':
+        if (martName == 'detail' or martName == 'dbtReport') and 'METADATA' not in category and 'plan' not in category and 'usage' not in category:
             rangeStartDt = item['dataRangeStartTimeStamp']
             rangeStart = rangeStartDt.replace(':','-').replace('.000Z','')
             rangeEndDt = item['dataRangeEndTimeStamp']
@@ -745,7 +745,7 @@ def loopThroughDownloadPackages(url):
             if martName == 'identity' or martName == 'snapshot' :
                 logHistorySnapshot(entity)
     
-        if martName == 'detail' or martName == 'dbtReport':
+        if (martName == 'detail' or martName == 'dbtReport') and 'METADATA' not in category and 'plan' not in category and 'usage' not in category:
             logHistory(rangeStartDt, rangeEndDt,processingStatus)
 
     logger('********** Finished Downloading Current Page **********', 'n')
